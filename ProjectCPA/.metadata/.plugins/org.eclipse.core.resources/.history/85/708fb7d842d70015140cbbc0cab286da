@@ -1,0 +1,52 @@
+package welzl;
+
+import java.awt.Point;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import supportGUI.Circle;
+
+public class TestWelzl {
+
+	public static void main(String[] args) throws IOException, InterruptedException {
+
+		FileWriter f_res_time = new FileWriter("./res_time");
+		FileWriter f_res_rayon = new FileWriter("./res_rayon");
+		File dir = new File("./samples2");
+		File[] directoryListing = dir.listFiles();
+		ArrayList<Point> points = new ArrayList<Point>();
+		long startTime, end;
+		
+		for (File child : directoryListing) {
+
+			FileReader f = new FileReader(child.getAbsolutePath());
+			BufferedReader br = new BufferedReader(f);
+			String s = "";
+
+			while((s = br.readLine()) != null){
+				points.add(new Point(Integer.valueOf(s.split(" ")[0]), Integer.valueOf(s.split(" ")[1])));
+				//System.out.println("ON A : " + Integer.valueOf(s.split(" ")[0]) + " et " +  Integer.valueOf(s.split(" ")[1]));
+			}
+
+			br.close();
+			System.out.println("TAILLE : " + points.size() + " FIC : " + child.getName());
+
+			startTime = System.currentTimeMillis();
+			//Circle cm = Naif.calculCercleMinNaif(points);
+			Circle cm = Welzl.calculCercleMinWelzl(points);
+			end = (System.currentTimeMillis() - startTime);
+			System.out.println("TEMPS : " + end + " et rayon vaut : " + cm.getRadius());
+			f_res_time.write(end + "\n");
+			f_res_rayon.write(cm.getRadius() + "\n");
+			points.removeAll(points);
+			
+		}
+		f_res_time.close();
+		f_res_rayon.close();
+	}
+
+}

@@ -1,0 +1,32 @@
+package algorithms;
+
+import java.awt.Point;
+
+public class Barycentre {
+	
+	public static Point calculBarycentre(Point x1, Point x2, Point x3){
+
+
+		double a, b, abis, bbis;   //Coeff directeur des droites pour trouver le GRAAL
+		MyPoint GRAAL = new MyPoint(0, 0);
+
+
+				a = ((x1.getX() - x2.getX()) / (x2.getY() - x1.getY()));
+				b = (Math.pow(x2.getX(), 2) - Math.pow(x1.getX(), 2) + Math.pow(x2.getY(), 2) - Math.pow(x1.getY(), 2))
+						/ (2*(x2.getY() - x1.getY()));
+
+
+					abis = ((x2.getX() - x3.getX()) / (x3.getY() - x2.getY()));
+					bbis = (Math.pow(x3.getX(), 2) - Math.pow(x2.getX(), 2) + Math.pow(x3.getY(), 2) - Math.pow(x2.getY(), 2))
+							/ (2*(x3.getY() - x2.getY()));
+
+					//Intersection coordonnées des 2 droites
+					if((abis - a) != 0){
+						GRAAL = Tools.intersectionDroites(a, b, abis, bbis);
+					}
+
+		return GRAAL.toPoint();
+	}
+
+
+}

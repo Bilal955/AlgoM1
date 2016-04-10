@@ -1,0 +1,52 @@
+package algorithms;
+
+import geometrie.Tools;
+
+import java.awt.Point;
+import java.util.ArrayList;
+
+import utils.Utils;
+
+public class DefaultTeam {
+  public Tree2D calculSteiner(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
+	 Tree2D result, res = null;
+	 double oldScore, newScore;
+	System.out.println("hitPoints size = "+ hitPoints.size());
+	Tree2D t = SteinerHeuristic.calcSteinerHeuristic(points, edgeThreshold, hitPoints);
+	System.out.println("Score = "+Utils.score(t));
+	
+	result = RegleDuBarycentre.regleDuBarycentre3(t, points);
+	
+	oldScore = Utils.score(t);
+	newScore = oldScore;
+	
+	while(newScore < oldScore) {
+		oldScore = newScore;
+		res = result; // Pas utile devient pas pire normalement mais egal
+		result = RegleDuBarycentre.regleDuBarycentre3(result, points);
+		
+		newScore = Tools.scoreTree2D(result);
+	}
+	
+	
+	
+	//Tree2D t = SteinerTree.steinerBarycentre(points, edgeThreshold, hitPoints);
+    return t;
+  }
+  public Tree2D calculSteinerBudget(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
+    //REMOVE >>>>>
+    Tree2D leafX = new Tree2D(new Point(700,400),new ArrayList<Tree2D>());
+    Tree2D leafY = new Tree2D(new Point(700,500),new ArrayList<Tree2D>());
+    Tree2D leafZ = new Tree2D(new Point(800,450),new ArrayList<Tree2D>());
+    ArrayList<Tree2D> subTrees = new ArrayList<Tree2D>();
+    subTrees.add(leafX);
+    subTrees.add(leafY);
+    subTrees.add(leafZ);
+    Tree2D steinerTree = new Tree2D(new Point(750,450),subTrees);
+    //<<<<< REMOVE
+
+    return steinerTree;
+  }
+  
+  
+}

@@ -1,0 +1,268 @@
+package algorithms;
+
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import geometrie.Arete;
+import geometrie.Tools;
+
+public class DefaultTeam {
+
+
+	public Tree2D calculSteiner(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
+		double oldScore, newScore;
+		ArrayList<Arete> result, res = null; 
+
+		result = Steiner.calculSteiner(points, edgeThreshold, hitPoints);
+		oldScore = Tools.scoreListeAretes(result);
+
+		result = Optimisation.OptimisationFermat(result, points, edgeThreshold, hitPoints);
+		newScore = Tools.scoreListeAretes(result);
+
+		while(newScore < oldScore) {
+			oldScore = newScore;
+			res = result; 
+			result = Optimisation.OptimisationFermat(result, points, edgeThreshold, hitPoints);
+			newScore = Tools.scoreListeAretes(result);
+			//System.out.println("OldScore = "+oldScore+", newScore = "+newScore);
+		}
+
+		return Tools.AreteToTree(res);
+	}
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public Tree2D calculSteinerBudget(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
+		int budget = 1664;
+		return calculWithBudget_V3(points, edgeThreshold, hitPoints, budget);
+	}
+
+	/////////////////////////////////////////////////////////:
+
+	private Tree2D calculWithBudget_V3(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints, int budget) {
+		Tree2D tree = calculSteiner(points, edgeThreshold, hitPoints); 
+		ArrayList<Arete> aretes = Tools.Tree2Aretes(tree);
+		/*ArrayList<Point> hitPointsCopie = new ArrayList<Point>(hitPoints);
+		Point aSup;
+
+		double score = Tools.scoreListeAretes(aretes);
+		while(score > budget) {
+			aSup = getNextPointASup(aretes, hitPointsCopie);
+			hitPointsCopie.remove(aSup);
+			aretes = Steiner.calculSteiner(points, edgeThreshold, hitPointsCopie);  
+			score = Tools.scoreListeAretes(aretes);
+			//System.out.println("aSup = "+aSup);
+		}*/
+
+		return Tools.AreteToTree(aretes);
+	}
+
+	private Point getNextPointASup(ArrayList<Arete> aretes, ArrayList<Point> hitPoints) {
+		ArrayList<Point> hitPointsExtremite = getListeHitPointExtremite(aretes, hitPoints);
+		double scoreMax = -1;
+		Point ptMax = null;
+		double score;
+		for(Point hit : hitPointsExtremite) {
+			score = getScoreWithNextHitPoint(hit, aretes, hitPoints);
+			if(score > scoreMax) {
+				scoreMax = score;
+				ptMax = hit;
+			}
+		}
+		return ptMax;
+	}
+
+	private double getScoreWithNextHitPoint(Point point, ArrayList<Arete> aretes, ArrayList<Point> hitPoints) {
+		Arete arr = getArete(point, aretes);
+		Point first = point;
+		Point second = (arr.getPointA().equals(first)) ? arr.getPointB() : arr.getPointA();
+		double score = arr.getPoids();
+
+		while(!hitPoints.contains(second)) {
+			arr = getSecondAreteContainsMe(arr, second, aretes);  
+			score += arr.getPoids();
+			first = second;
+			second = (arr.getPointA().equals(first)) ? arr.getPointB() : arr.getPointA();
+		}
+		return score;
+	}
+
+	private ArrayList<Point> getListeHitPointExtremite(ArrayList<Arete> aretes, ArrayList<Point> hitPoints) {
+		ArrayList<Point> ptSeuls =  getAllPointsSeul(aretes);
+		ArrayList<Point> hitPointSeul = new ArrayList<Point>();
+		for(Point tmp : ptSeuls) {
+			if(hitPoints.contains(tmp))
+				hitPointSeul.add(tmp);
+		}
+		return hitPointSeul;
+	}
+
+
+	private Arete getSecondAreteContainsMe(Arete notMe, Point second, ArrayList<Arete> aretes) {
+		for(Arete tmp : aretes) {
+			if(tmp.equals(notMe))
+				continue;
+			if(tmp.getPointA().equals(second) || tmp.getPointB().equals(second))
+				return tmp;
+		}
+		return null;
+	}
+
+	private Arete getArete(Point point, ArrayList<Arete> aretes) {
+		for(Arete tmp : aretes) {
+			if(tmp.getPointA().equals(point) || tmp.getPointB().equals(point))
+				return tmp;
+		}
+		return null;
+	}
+
+	// Point connecte a exactement une arete
+	private ArrayList<Point> getAllPointsSeul(ArrayList<Arete> aretes) {
+		HashMap<Point, Integer> map = new HashMap<Point, Integer>();
+		for(Arete tmp : aretes) {
+			Point a = tmp.getPointA();
+			Point b = tmp.getPointB();
+			Integer resA = (map.get(a) == null) ? 1 : map.get(a)+1;
+			Integer resB = (map.get(b) == null) ? 1 : map.get(b)+1;
+			map.put(a, resA);
+			map.put(b, resB);
+		}
+
+		ArrayList<Point> res = new ArrayList<Point>();
+		for(Point tmp : map.keySet()) {
+			if(map.get(tmp) == 1)
+				res.add(tmp);
+		}
+		return res;
+	}
+
+	////////////////////////////////////////////////////////////////:
+
+
+
+	private Tree2D calculWithBudget_V2(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints, int budget) {
+		Tree2D tree = calculSteiner(points, edgeThreshold, hitPoints); 
+		ArrayList<Arete> aretes = Tools.Tree2Aretes(tree);
+		ArrayList<Point> hitPointsCopie = new ArrayList<Point>(hitPoints);
+
+		double score = Tools.scoreListeAretes(aretes);
+		while(score > budget) {
+			Point aSup = getPointASup(aretes);
+			if(!hitPointsCopie.contains(aSup))
+				System.out.println("Contient pas !!!");
+			hitPointsCopie.remove(aSup);
+			aretes = Steiner.calculSteiner(points, edgeThreshold, hitPointsCopie);  
+			score = Tools.scoreListeAretes(aretes);
+			System.out.println("Score = "+score+", sup : "+aSup);
+		}
+
+		tree = Tools.AreteToTree(aretes);
+		return tree;
+	}
+
+
+	private Point getPointASup(ArrayList<Arete> aretes) {
+		ArrayList<Arete> aretesSeul = getAretesSeul(aretes);
+		Arete aSup = getWithMaxDist(aretesSeul);
+		Point ptSeulASup = getPointSeul(aSup, aretes);
+		if(ptSeulASup == null)
+			System.out.println("??????????????????????????????");
+		return ptSeulASup;
+	}
+
+
+	private Point getPointSeul(Arete aSup, ArrayList<Arete> aretes) {
+		int cptA = 0;
+		int cptB = 0;
+		Point A = aSup.getPointA();
+		Point B = aSup.getPointB();
+		for(Arete tmp : aretes) {
+			if(tmp.getPointA().equals(A))
+				cptA++;
+			else if(tmp.getPointA().equals(B))
+				cptB++;
+			if(tmp.getPointB().equals(A))
+				cptA++;
+			else if(tmp.getPointB().equals(B))
+				cptB++;
+			if(cptA > 1)
+				return B;
+			else if(cptB > 1)
+				return A;
+		}
+		return null;
+	}
+
+
+
+
+
+	private Tree2D calculWithBudget_V1(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints, int budget) {
+		ArrayList<Arete> aretesSeul = null;
+		Tree2D tree = calculSteiner(points, edgeThreshold, hitPoints); 
+		ArrayList<Arete> aretes = Tools.Tree2Aretes(tree);
+		double score = Tools.scoreListeAretes(aretes);
+
+		while(score > budget) {
+			aretesSeul = getAretesSeul(aretes);
+			Arete aSup = getWithMaxDist(aretesSeul);
+			aretes.remove(aSup);
+			score = Tools.scoreListeAretes(aretes);
+			System.out.println("Score = "+score);
+		}
+
+		tree = Tools.AreteToTree(aretes);
+		return tree;
+	}
+
+
+
+	private Arete getWithMaxDist(ArrayList<Arete> aretes) {
+		double max = aretes.get(0).getPoids();
+		Arete res = aretes.get(0);
+		for(Arete tmp : aretes) {
+			if(tmp.getPoids() > max) {
+				max = tmp.getPoids();
+				res = tmp;
+			}
+		}
+		return res;
+	}
+
+	// arete connecte d'un cote
+	private ArrayList<Arete> getAretesSeul(ArrayList<Arete> aretes) {
+		ArrayList<Point> ptsSeul = getAllPointsSeul(aretes);
+		ArrayList<Arete> res = new ArrayList<Arete>();
+		for(Arete tmp : aretes) {
+			if(ptsSeul.contains(tmp.getPointA()) || ptsSeul.contains(tmp.getPointB())) 
+				res.add(tmp);
+		}
+
+		//System.out.println(res.size());
+		return res;
+	}
+
+
+
+
+
+
+}

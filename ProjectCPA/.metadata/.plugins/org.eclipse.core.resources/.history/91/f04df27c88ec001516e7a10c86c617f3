@@ -1,0 +1,89 @@
+package algorithms;
+
+import java.awt.Point;
+import java.util.ArrayList;
+
+public class SteinerHeuristic {
+
+	public static int[][] calculShortestPaths(ArrayList<Point> points, int edgeThreshold) {
+		int[][] paths=new int[points.size()][points.size()];
+		for (int i=0;i<paths.length;i++) for (int j=0;j<paths.length;j++) paths[i][j]=j;
+
+		double[][] D = new double[points.size()][points.size()];
+		for(int i = 0; i<D.length; i++){
+			for(int j= 0; j<D.length; j++){
+				if(i==j)paths[i][j]=0;
+				else if(points.get(i).distance(points.get(j))<edgeThreshold){
+					D[i][j] = points.get(i).distance(points.get(j));
+				}
+				else 
+					D[i][j] = Double.MAX_VALUE;
+			}
+		}
+
+		for(int k=0; k<points.size(); k++){
+			for(int i=0; i<points.size(); i++){
+				for(int j=0; j<points.size(); j++){
+					if(D[i][k]+D[k][j]<D[i][j]){
+						D[i][j]= D[i][k]+D[k][j];
+						paths[i][j] = paths[i][k];
+					}
+				}
+			}
+		}
+		return paths;
+	}
+
+	public static Tree2D calcSteinerHeuristic(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints){
+		int[][] paths = calculShortestPaths(points, edgeThreshold);
+
+		ArrayList<Edge> edgesBetweenHitPoints = Kruskal.calculKruskal(hitPoints);
+		ArrayList<Point> path = new ArrayList<Point>();
+
+		for(Edge e : edgesBetweenHitPoints){
+			int i = points.indexOf(e.getP());
+			int j = points.indexOf(e.getQ());
+			for(Integer k : getPathPointsIndex(i, j, paths)){
+				path.add(points.get(k));
+			}
+		}
+
+		return Kruskal.EdgeToTree(Kruskal.calculKruskal(path));		
+	}
+
+	public static ArrayList<Integer> getPathPointsIndex(int i, int j, int[][] paths){
+		ArrayList<Integer> path = new ArrayList<Integer>();
+		path.add(i);
+		while(paths[i][j] != j){
+			path.add(paths[i][j]);
+			i = paths[i][j];
+		}
+		path.add(j);
+		return path;
+	}
+
+	public static Point nearestPoint(Point A, ArrayList<Point> list){
+		double distance = Double.MAX_VALUE;
+		Point res = null;
+		for(Point p : list ){
+			if(A.distance(p)<distance){
+				distance = A.distance(p);
+				res = p;
+			}
+		}
+		return res; 
+	}
+
+
+	public static Tree2D steinerBudget(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints, int budget){
+		
+		ArrayList<Arete> aretes = new ArrayList<>();
+		Point maison_mere = hitPoints.get(0);
+		
+		
+		
+		return null;
+	}
+	
+
+}

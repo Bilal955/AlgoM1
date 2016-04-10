@@ -1,0 +1,13 @@
+package algorithms;
+
+
+public class Tools {
+
+	public static MyPoint intersectionDroites(double a, double b, double abis, double bbis){
+		double x = (b - bbis) / (abis - a);
+		double y = a*x + b;
+		return new MyPoint(x, y);
+	}
+
+
+}

@@ -1,0 +1,208 @@
+package geometrie;
+
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import algorithms.Edge;
+import algorithms.Tree2D;
+
+public class Tools {
+
+
+	public static ArrayList<Arete> Tree2Aretes(Tree2D arbre) {
+		ArrayList<Arete> res = new ArrayList<Arete>();
+
+		Point cur = arbre.getRoot();
+		for(Tree2D voisin : arbre.getSubTrees()) 
+			res.add(new Arete(cur, voisin.getRoot(), cur.distance(voisin.getRoot())));
+		for(Tree2D voisin : arbre.getSubTrees()) 
+			res.addAll(Tree2Aretes(voisin));
+
+		return res;
+	}
+
+
+	public static double scoreTree2D(Tree2D tree) {
+		double score = tree.distanceRootToSubTrees();
+		for(Tree2D tmp : tree.getSubTrees()) 
+			score += scoreTree2D(tmp);
+		return score;
+	}
+
+	public static double scoreListeAretes(ArrayList<Arete> aretes) {
+		double res = 0;
+		for(Arete tmp : aretes)
+			res += tmp.getPoids();
+		return res;
+	}
+	
+	public static double scoreListeEdges(ArrayList<Edge> aretes) {
+		double res = 0;
+		for(Edge tmp : aretes)
+			res += tmp.getDistance();
+		return res;
+	}
+	
+	
+
+	public static Tree2D AreteToTree(ArrayList<Arete> solution) {
+		return AreteToTreeRec(solution.get(0).getPointA(), solution);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Tree2D AreteToTreeRec(Point myPoint, ArrayList<Arete> solution) {
+		ArrayList<Arete> solution2; 
+		Point cur = myPoint;
+		
+		Set<Point> fils = new HashSet<Point>();
+		for(Point tmp : getAllExtre(cur, solution))
+			fils.add(tmp);
+		
+		Tree2D cur2D = new Tree2D(cur, new ArrayList<Tree2D>());
+
+		if(fils.isEmpty())
+			return cur2D;
+
+		for(Point tmp : fils) {
+			solution2 = (ArrayList<Arete>) solution.clone();
+			Arete branche = getArete(myPoint, tmp, solution2);
+			solution2.remove(branche);
+
+			Tree2D fils2D = AreteToTreeRec(tmp, solution2);
+			cur2D.getSubTrees().add(fils2D);
+		}
+		return cur2D;
+	}
+
+	
+	
+	
+	public static Tree2D EdgeToTree(ArrayList<Arete> solution) {
+		return EdgeToTreeRec(solution.get(0).getPointA(), solution);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Tree2D EdgeToTreeRec(Point myPoint, ArrayList<Arete> solution) {
+		ArrayList<Arete> solution2; 
+		Point cur = myPoint;
+		
+		Set<Point> fils = new HashSet<Point>();
+		for(Point tmp : getAllExtre(cur, solution))
+			fils.add(tmp);
+		
+		Tree2D cur2D = new Tree2D(cur, new ArrayList<Tree2D>());
+
+		if(fils.isEmpty())
+			return cur2D;
+
+		for(Point tmp : fils) {
+			solution2 = (ArrayList<Arete>) solution.clone();
+			Arete branche = getArete(myPoint, tmp, solution2);
+			solution2.remove(branche);
+
+			Tree2D fils2D = AreteToTreeRec(tmp, solution2);
+			cur2D.getSubTrees().add(fils2D);
+		}
+		return cur2D;
+	}
+	
+
+	private static Arete getArete(Point point1, Point point2, ArrayList<Arete> solution) {
+		for(Arete tmp : solution) {
+			if(tmp.getPointA().equals(point1) && tmp.getPointB().equals(point2))
+				return tmp;
+			if(tmp.getPointA().equals(point2) && tmp.getPointB().equals(point1))
+				return tmp;
+		}
+		System.out.println("DEBUGGGGGGGGGGG !!!");
+		return null;
+	}
+
+	private static ArrayList<Point> getAllExtre(Point cur, ArrayList<Arete> solution) {
+		ArrayList<Point> res = new ArrayList<Point>();
+
+		for(Arete a : solution) {
+			if(a.getPointA().equals(cur)) 
+				res.add(a.getPointB());
+			else if(a.getPointB().equals(cur))
+				res.add(a.getPointA());
+
+		}
+		return res;
+	}
+
+	public static ArrayList<Point> AretesToPoints(ArrayList<Arete> aretes) {
+		Set<Point> setTmp = new HashSet<Point>();
+		for(Arete tmp : aretes) {
+			setTmp.add(tmp.getPointA());
+			setTmp.add(tmp.getPointB());
+		}
+		return new ArrayList<Point>(setTmp);
+	}
+
+	public static MyPoint getAutrePointDuTriangle(MyPoint a, MyPoint b) { // OK!
+		double x = a.x + (b.x - a.x)*Math.cos(Math.PI/3) - (b.y - a.y)*Math.sin(Math.PI/3);
+		double y = a.y + (b.x - a.x)*Math.sin(Math.PI/3) + (b.y - a.y)*Math.cos(Math.PI/3);
+		return new MyPoint(x, y);
+	}
+	
+	public static MyPoint getAutrePointDuTriangle2(MyPoint a, MyPoint b) { 
+		double x = a.x + (b.x - a.x)*Math.cos(-Math.PI/3) - (b.y - a.y)*Math.sin(-Math.PI/3);
+		double y = a.y + (b.x - a.x)*Math.sin(-Math.PI/3) + (b.y - a.y)*Math.cos(-Math.PI/3);
+		return new MyPoint(x, y);
+	}
+
+	
+
+	public static Arete getPointArete(ArrayList<Arete> aretes, Point a, Point b) {
+		for(Arete tmp : aretes) {
+			if(tmp.getPointA().equals(a) && tmp.getPointB().equals(b))
+				return tmp;
+			if(tmp.getPointA().equals(b) && tmp.getPointB().equals(a))
+				return tmp;
+		}
+		return null;
+	}
+
+	public static Point getPointBarycentre(Point a, Point b, Point c) {
+		double x = (a.getX() + b.getX() + c.getX())/3;
+		double y = (a.getY() + b.getY() + c.getY())/3;
+		return new Point((int)x, (int)y);
+	}
+	public static Point getPointBarycentre(MyPoint a, MyPoint b, MyPoint c) {
+		double x = (a.getX() + b.getX() + c.getX())/3;
+		double y = (a.getY() + b.getY() + c.getY())/3;
+		return new Point((int)x, (int)y);
+	}
+
+	public static boolean aLinterieurDuTriangle(Point x, Point a, Point b, Point c) {
+		double div = ((b.y - c.y)*(a.x - c.x) + (c.x - b.x)*(a.y - c.y));
+
+		double l1 = ((b.y - c.y)*(x.x - c.x) + (c.x - b.x)*(x.y - c.y)) / div;
+		double l2 = ((c.y - a.y)*(x.x - c.x) + (a.x - c.x)*(x.y - c.y)) / div;
+		double l3 = 1 - l1 - l2;
+
+		return ((l1 >= 0) && (l1 <= 1)) &&
+				((l2 >= 0) && (l2 <= 1)) &&
+				((l3 >= 0) && (l3 <= 1));
+	}
+
+
+	public static Point getPlusProcheDansLeTriangle(ArrayList<Point> points, Point p, Point a, Point b, Point c) {
+		Point res = null;
+		double distMin = Double.MAX_VALUE;
+
+		for(Point tmp : points) {
+			if(distMin < tmp.distance(p))
+				continue;
+			if(!Tools.aLinterieurDuTriangle(tmp, a, b, c)) 
+				continue;
+			distMin = tmp.distance(p);
+			res = tmp;
+		}
+		return res;
+	}
+
+}

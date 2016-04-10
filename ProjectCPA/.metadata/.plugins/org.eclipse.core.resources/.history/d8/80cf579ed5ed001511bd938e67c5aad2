@@ -1,0 +1,106 @@
+package algorithms;
+
+import java.awt.Point;
+import java.util.ArrayList;
+
+import geometrie.Arete;
+import geometrie.Tools;
+import geometrie.Utils;
+
+public class DefaultTeam {
+
+
+	public Tree2D calculSteiner(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
+		double oldScore, newScore;
+		ArrayList<Arete> result, res = null; 
+
+		result = Steiner.calculSteiner(points, edgeThreshold, hitPoints);
+		oldScore = Tools.scoreListeAretes(result);
+		
+		System.out.println("score : "+ oldScore);
+
+		result = Optimisation.OptimisationFermat(result, points, edgeThreshold);
+		newScore = Tools.scoreListeAretes(result);
+
+		while(newScore < oldScore) {
+			oldScore = newScore;
+			res = result; 
+			result = Optimisation.OptimisationFermat(result, points, edgeThreshold);
+			newScore = Tools.scoreListeAretes(result);
+			//System.out.println("OldScore = "+oldScore+", newScore = "+newScore);
+		}
+		
+		return Tools.AreteToTree(res);
+	}
+
+
+
+
+
+	public Tree2D calculSteinerBudget(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
+
+		int budget = 1664;
+		ArrayList<Arete> sol = Steiner.calculSteiner(points, edgeThreshold, hitPoints);
+		ArrayList<Arete> sol2 = (ArrayList<Arete>) sol.clone();
+		int cpt = 0;
+		Edge e1 = null;
+		Edge e2 = null;
+		ArrayList<Edge> retirer = new ArrayList<>();
+		boolean A_retirer = true;
+		
+		while( !retirer.containsAll(sol)){
+			for (Edge a : sol2) {
+				for (Edge b : sol2) {
+					if(a.equals(b))
+						continue;
+					if((a.getP().equals(b.getP()) || a.getP().equals(b.getQ())) && (a.getQ().equals(b.getP()) || a.getQ().equals(b.getQ()))){
+						A_retirer = false;
+						break;
+					}
+				}
+				if(A_retirer){
+					System.out.println("RETIRERR");
+					retirer.add(a);
+					cpt++;
+					if(e1 == null)
+						e1 = a;
+					else
+						e2 = a;
+				}
+				A_retirer = true;
+			}
+			if(cpt == 2){
+				sol2.remove(e1);
+				sol2.remove(e2);
+				e1 = null;
+				e2 = null;
+				cpt = 0;
+			}
+			
+		}
+
+
+		double score = Tools.scoreListeEdges(sol);
+		System.out.println("score : "+ score);
+		
+		//return Tools.AreteToTree(Tools.EdgeToArete(sol));
+		
+		while(score > budget){
+			Edge enleve1 = retirer.get(0);
+			Edge enleve2 = retirer.get(1);
+			Edge enleve;
+			if(enleve1.getDistance() > enleve2.getDistance())
+				enleve = enleve1;
+			else
+				enleve = enleve2;
+			retirer.remove(enleve);
+			sol.remove(enleve);
+			score -= enleve.getDistance();
+		}
+
+		System.out.println("SOL : " + sol.size());
+		ArrayList<Arete> aretes = Tools.EdgeToArete(sol);
+		
+		return Tools.AreteToTree(aretes);
+	}
+}

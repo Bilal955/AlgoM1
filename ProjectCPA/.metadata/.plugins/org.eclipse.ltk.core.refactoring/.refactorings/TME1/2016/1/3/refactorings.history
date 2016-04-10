@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename local variable &apos;p&apos; in &apos;algorithms.DefaultTeam.calculCercleMin(...)&apos; to &apos;point&apos;&#x0A;- Original project: &apos;CPA&apos;&#x0A;- Original element: &apos;algorithms.DefaultTeam.calculCercleMin(ArrayList&lt;Point&gt;).p&apos;&#x0A;- Renamed element: &apos;p&apos;&#x0A;- Update references to refactored element" description="Rename local variable &apos;p&apos;" id="org.eclipse.jdt.ui.rename.local.variable" input="/src&lt;algorithms{DefaultTeam.java[DefaultTeam~calculCercleMin~QArrayList\&lt;QPoint;&gt;;@p!3023!3038!3029!3029!QPoint;!0!false" name="point" references="true" stamp="1453285792485" version="1.0"/>
+</session>
